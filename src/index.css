@@ -1,0 +1,94 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --color-ivory: #FFF8F2;
+    --color-blush: #F9DDE7;
+    --color-rose: #EFA4B8;
+    --color-lavender: #E8E0F6;
+    --color-sage: #DCEBDD;
+    --color-teddy: #9B715F;
+    --color-cocoa: #493A38;
+  }
+
+  body {
+    background-color: #FFF8F2;
+    color: #493A38;
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    overflow-x: hidden;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  h1, h2, h3, .font-display {
+    font-family: 'Fredoka', 'Outfit', system-ui, sans-serif;
+  }
+}
+
+@keyframes floatSlow {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-10px) rotate(3deg);
+  }
+}
+
+@keyframes gentlePulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.04);
+  }
+}
+
+@keyframes sparkleSpin {
+  0% {
+    transform: rotate(0deg) scale(0.8);
+    opacity: 0.6;
+  }
+  50% {
+    transform: rotate(180deg) scale(1.2);
+    opacity: 1;
+  }
+  100% {
+    transform: rotate(360deg) scale(0.8);
+    opacity: 0.6;
+  }
+}
+
+@keyframes softWiggle {
+  0%, 100% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(-4deg);
+  }
+  75% {
+    transform: rotate(4deg);
+  }
+}
+
+.animate-float-slow {
+  animation: floatSlow 4s ease-in-out infinite;
+}
+
+.animate-gentle-pulse {
+  animation: gentlePulse 2.5s ease-in-out infinite;
+}
+
+.animate-sparkle {
+  animation: sparkleSpin 3s ease-in-out infinite;
+}
+
+.animate-soft-wiggle {
+  animation: softWiggle 1.5s ease-in-out infinite;
+}
+
+/* Curved text utility */
+.curved-text-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}

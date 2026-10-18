@@ -1,0 +1,6 @@
+{
+  "name": "Nivahh's 20th Birthday Surprise",
+  "description": "A cinematic, interactive 20th birthday story and digital gift experience for Nivahh.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
