@@ -2,6 +2,12 @@
  * Application scene and media types for Nivahh's 20th Birthday Experience.
  */
 
+import helloVideo from './assets/videos/hello.mp4';
+import cuteVideo from './assets/videos/cute.mp4';
+import vitaminVideo from './assets/videos/vitamin.mp4';
+import mineVideo from './assets/videos/mine.mp4';
+import birthdayVideo from './assets/videos/birthday.mp4';
+
 export type SceneId = 1 | 2 | 3 | 4 | 5 | 'detour' | 6 | 7;
 
 export type VideoAssetKey = 'hello' | 'cute' | 'vitamin' | 'mine' | 'birthday';
@@ -10,6 +16,7 @@ export interface VideoAssetInfo {
   key: VideoAssetKey;
   filename: string;
   defaultPath: string;
+  videoUrl: string;
   sceneNumber: 1 | 2 | 3 | 4 | 6;
   title: string;
   character: string;
@@ -20,7 +27,8 @@ export const VIDEO_MANIFEST: Record<VideoAssetKey, VideoAssetInfo> = {
   hello: {
     key: 'hello',
     filename: 'hello.mp4',
-    defaultPath: '/videos/hello.mp4',
+    defaultPath: helloVideo,
+    videoUrl: helloVideo,
     sceneNumber: 1,
     title: 'Scene 1: Hello, Hello, Hello',
     character: 'White Teddy Bear',
@@ -29,7 +37,8 @@ export const VIDEO_MANIFEST: Record<VideoAssetKey, VideoAssetInfo> = {
   cute: {
     key: 'cute',
     filename: 'cute.mp4',
-    defaultPath: '/videos/cute.mp4',
+    defaultPath: cuteVideo,
+    videoUrl: cuteVideo,
     sceneNumber: 2,
     title: 'Scene 2: Suspiciously Cute',
     character: 'Pink Teddy Bear',
@@ -38,7 +47,8 @@ export const VIDEO_MANIFEST: Record<VideoAssetKey, VideoAssetInfo> = {
   vitamin: {
     key: 'vitamin',
     filename: 'vitamin.mp4',
-    defaultPath: '/videos/vitamin.mp4',
+    defaultPath: vitaminVideo,
+    videoUrl: vitaminVideo,
     sceneNumber: 3,
     title: 'Scene 3: Missing Vitamins',
     character: 'Pink Teddy Bear',
@@ -47,7 +57,8 @@ export const VIDEO_MANIFEST: Record<VideoAssetKey, VideoAssetInfo> = {
   mine: {
     key: 'mine',
     filename: 'mine.mp4',
-    defaultPath: '/videos/mine.mp4',
+    defaultPath: mineVideo,
+    videoUrl: mineVideo,
     sceneNumber: 4,
     title: "Scene 4: The Panda's Line",
     character: 'Panda Bear with Lavender Bow',
@@ -56,7 +67,8 @@ export const VIDEO_MANIFEST: Record<VideoAssetKey, VideoAssetInfo> = {
   birthday: {
     key: 'birthday',
     filename: 'birthday.mp4',
-    defaultPath: '/videos/birthday.mp4',
+    defaultPath: birthdayVideo,
+    videoUrl: birthdayVideo,
     sceneNumber: 6,
     title: 'Scene 6: The Birthday Reveal',
     character: 'Birthday Teddy Bear',
@@ -65,9 +77,9 @@ export const VIDEO_MANIFEST: Record<VideoAssetKey, VideoAssetInfo> = {
 };
 
 export const NO_MESSAGES: string[] = [
-  'Aww, are you sure? 🥺',
-  'The little bears prepared something just for you! 🧸',
-  'Our official cuteness research says: reconsider! 💗',
-  'Your surprise is waiting behind one little Yes! 🎁',
-  'One last request from the bears… pretty please? 🥹',
+  'Why did you click No?',
+  'Are you really sure you want to say No?',
+  'Think about this very carefully...',
+  'The bears are getting emotional now!',
+  'There is only one right answer: YES!',
 ];

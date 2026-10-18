@@ -1,5 +1,5 @@
-import React, { useRef, useEffect } from 'react';
-import { Sparkles, Heart } from 'lucide-react';
+import React, { useRef, useState, useEffect } from 'react';
+import { Sparkles, Heart, Play } from 'lucide-react';
 import { VideoAssetKey, VIDEO_MANIFEST } from '../../types';
 
 interface AnimatedPageStageProps {
@@ -27,12 +27,10 @@ export const AnimatedPageStage: React.FC<AnimatedPageStageProps> = ({
 }) => {
   const manifest = VIDEO_MANIFEST[videoKey];
   const videoRef = useRef<HTMLVideoElement>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
 
-  // Compute robust path that works in dev, preview, Netlify, and custom domains
-  const base = import.meta.env.BASE_URL.endsWith('/')
-    ? import.meta.env.BASE_URL
-    : `${import.meta.env.BASE_URL}/`;
-  const videoSrc = `${base}videos/${manifest.filename}`;
+  // Direct bundled asset URL guaranteed to work on Netlify and all deployments
+  const videoSrc = manifest.videoUrl || manifest.defaultPath;
 
   // Ensure video autoplays immediately and sound turns on reliably
   useEffect(() => {
@@ -40,27 +38,37 @@ export const AnimatedPageStage: React.FC<AnimatedPageStageProps> = ({
     if (!video) return;
 
     // Start with muted=true so Chrome/Safari/iOS/Netlify NEVER block autoplay
+    video.defaultMuted = true;
     video.muted = true;
-    const playPromise = video.play();
+    video.load();
 
-    // Attempt to unmute immediately if browser policy allows
-    if (playPromise !== undefined) {
-      playPromise
-        .then(() => {
-          video.muted = false;
-        })
-        .catch(() => {
-          // If browser requires user interaction for sound, retry muted
-          video.muted = true;
-          video.play().catch(() => {});
-        });
-    }
+    const startPlay = () => {
+      const playPromise = video.play();
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => {
+            setIsPlaying(true);
+            // Attempt to unmute immediately if browser policy allows
+            video.muted = false;
+          })
+          .catch(() => {
+            // If unmuted failed, ensure muted playback continues
+            video.muted = true;
+            video
+              .play()
+              .then(() => setIsPlaying(true))
+              .catch(() => setIsPlaying(false));
+          });
+      }
+    };
 
-    // Any touch, click, or keypress anywhere on the screen immediately unmutes the video
+    startPlay();
+
+    // Any touch, click, or keypress anywhere on the screen immediately starts/unmutes the video
     const handleUnmute = () => {
       if (video) {
         video.muted = false;
-        video.play().catch(() => {});
+        video.play().then(() => setIsPlaying(true)).catch(() => {});
       }
     };
 
@@ -72,11 +80,17 @@ export const AnimatedPageStage: React.FC<AnimatedPageStageProps> = ({
       window.removeEventListener('click', handleUnmute);
       window.removeEventListener('touchstart', handleUnmute);
       window.removeEventListener('keydown', handleUnmute);
-      if (video) {
-        video.pause();
-      }
+      video.pause();
     };
   }, [videoSrc]);
+
+  const handleCardClick = () => {
+    const video = videoRef.current;
+    if (video) {
+      video.muted = false;
+      video.play().then(() => setIsPlaying(true)).catch(() => {});
+    }
+  };
 
   const themeConfig = {
     pink: {
@@ -124,10 +138,12 @@ export const AnimatedPageStage: React.FC<AnimatedPageStageProps> = ({
 
         {/* Presentation Container with overflow-hidden to crop out black letterbox bars */}
         <div
-          className="relative w-full aspect-[9/16] sm:aspect-[4/5] max-h-[520px] rounded-2xl sm:rounded-3xl overflow-hidden flex flex-col items-center justify-center bg-white shadow-xs"
+          onClick={handleCardClick}
+          className="relative w-full aspect-[9/16] sm:aspect-[4/5] max-h-[520px] rounded-2xl sm:rounded-3xl overflow-hidden flex flex-col items-center justify-center bg-white shadow-xs cursor-pointer group"
         >
           {/* THE REAL MP4 VIDEO: Directly displayed with zero placeholder blocking */}
           <video
+            key={videoSrc}
             ref={videoRef}
             src={videoSrc}
             autoPlay
@@ -135,11 +151,23 @@ export const AnimatedPageStage: React.FC<AnimatedPageStageProps> = ({
             playsInline
             muted
             preload="auto"
+            onPlay={() => setIsPlaying(true)}
+            onPlaying={() => setIsPlaying(true)}
+            onPause={() => setIsPlaying(false)}
             onEnded={() => {
               if (onEnded) onEnded();
             }}
             className="w-full h-full object-cover object-center scale-[1.18] transition-transform duration-300 block"
           />
+
+          {/* Gentle play button shown only if browser policy paused autoplay */}
+          {!isPlaying && (
+            <div className="absolute inset-0 flex items-center justify-center bg-black/20 z-20 transition-opacity">
+              <div className="w-16 h-16 rounded-full bg-white/95 text-[#E86E8A] flex items-center justify-center shadow-xl group-hover:scale-105 active:scale-95 transition-transform">
+                <Play className="w-7 h-7 fill-current ml-1" />
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Footer Dialogue Caption */}
