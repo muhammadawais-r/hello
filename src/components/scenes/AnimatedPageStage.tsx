@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useEffect } from 'react';
 import { Sparkles, Heart } from 'lucide-react';
 import { VideoAssetKey, VIDEO_MANIFEST } from '../../types';
 
@@ -9,7 +9,7 @@ interface AnimatedPageStageProps {
   footerContent?: React.ReactNode;
   actionButton?: React.ReactNode;
   theme?: 'pink' | 'lavender' | 'ivory';
-  animatedIllustration: React.ReactNode;
+  animatedIllustration?: React.ReactNode;
   dialogueBadge?: React.ReactNode;
   onEnded?: () => void;
   loop?: boolean;
@@ -22,57 +22,61 @@ export const AnimatedPageStage: React.FC<AnimatedPageStageProps> = ({
   footerContent,
   actionButton,
   theme = 'pink',
-  animatedIllustration,
-  dialogueBadge,
   onEnded,
   loop = true,
 }) => {
   const manifest = VIDEO_MANIFEST[videoKey];
   const videoRef = useRef<HTMLVideoElement>(null);
 
-  const [videoLoaded, setVideoLoaded] = useState(false);
-  const [isMuted, setIsMuted] = useState(false);
+  // Compute robust path that works in dev, preview, Netlify, and custom domains
+  const base = import.meta.env.BASE_URL.endsWith('/')
+    ? import.meta.env.BASE_URL
+    : `${import.meta.env.BASE_URL}/`;
+  const videoSrc = `${base}videos/${manifest.filename}`;
 
-  // Auto-play video with sound always enabled
+  // Ensure video autoplays immediately and sound turns on reliably
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
 
-    video.muted = false;
+    // Start with muted=true so Chrome/Safari/iOS/Netlify NEVER block autoplay
+    video.muted = true;
     const playPromise = video.play();
+
+    // Attempt to unmute immediately if browser policy allows
     if (playPromise !== undefined) {
       playPromise
         .then(() => {
-          setVideoLoaded(true);
-          setIsMuted(false);
+          video.muted = false;
         })
         .catch(() => {
-          // If browser policy prevents unmuted autoplay on initial load,
-          // start muted and unmute immediately on the first touch or click
+          // If browser requires user interaction for sound, retry muted
           video.muted = true;
-          setIsMuted(true);
-          video
-            .play()
-            .then(() => setVideoLoaded(true))
-            .catch(() => setVideoLoaded(false));
-
-          const enableAudio = () => {
-            if (videoRef.current) {
-              videoRef.current.muted = false;
-              setIsMuted(false);
-            }
-          };
-          window.addEventListener('click', enableAudio, { once: true });
-          window.addEventListener('touchstart', enableAudio, { once: true });
+          video.play().catch(() => {});
         });
     }
 
+    // Any touch, click, or keypress anywhere on the screen immediately unmutes the video
+    const handleUnmute = () => {
+      if (video) {
+        video.muted = false;
+        video.play().catch(() => {});
+      }
+    };
+
+    window.addEventListener('click', handleUnmute, { once: true, passive: true });
+    window.addEventListener('touchstart', handleUnmute, { once: true, passive: true });
+    window.addEventListener('keydown', handleUnmute, { once: true, passive: true });
+
     return () => {
+      window.removeEventListener('click', handleUnmute);
+      window.removeEventListener('touchstart', handleUnmute);
+      window.removeEventListener('keydown', handleUnmute);
       if (video) {
         video.pause();
       }
     };
-  }, [manifest.defaultPath]);
+  }, [videoSrc]);
 
   const themeConfig = {
     pink: {
@@ -106,7 +110,7 @@ export const AnimatedPageStage: React.FC<AnimatedPageStageProps> = ({
         )}
       </div>
 
-      {/* Main Animated Story Stage (No Black Borders, Rounded & Seamless) */}
+      {/* Main Animated Story Stage */}
       <div
         className={`w-full relative rounded-3xl sm:rounded-[2.5rem] p-4 sm:p-6 border transition-all duration-500 overflow-hidden ${themeConfig.cardBg} ${themeConfig.cardBorder} ${themeConfig.cardGlow}`}
       >
@@ -122,37 +126,20 @@ export const AnimatedPageStage: React.FC<AnimatedPageStageProps> = ({
         <div
           className="relative w-full aspect-[9/16] sm:aspect-[4/5] max-h-[520px] rounded-2xl sm:rounded-3xl overflow-hidden flex flex-col items-center justify-center bg-white shadow-xs"
         >
-          {/* THE REAL MP4 ANIMATION: Cropped with scale-[1.18] so black borders do not show, seamlessly merging with background */}
+          {/* THE REAL MP4 VIDEO: Directly displayed with zero placeholder blocking */}
           <video
             ref={videoRef}
-            src={manifest.defaultPath}
+            src={videoSrc}
             autoPlay
             loop={loop}
             playsInline
-            muted={isMuted}
+            muted
+            preload="auto"
             onEnded={() => {
               if (onEnded) onEnded();
             }}
-            onLoadedData={() => setVideoLoaded(true)}
-            onPlay={() => setVideoLoaded(true)}
-            onError={(e) => {
-              console.warn('Video failed to load:', manifest.defaultPath, e);
-              setVideoLoaded(false);
-            }}
-            className="w-full h-full object-cover object-center scale-[1.18] z-10 transition-transform duration-300"
+            className="w-full h-full object-cover object-center scale-[1.18] transition-transform duration-300 block"
           />
-
-          {/* Fallback illustration only shown if video cannot load */}
-          {!videoLoaded && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center p-4 z-0">
-              {animatedIllustration}
-              {dialogueBadge && (
-                <div className="mt-4 sm:mt-6 animate-gentle-pulse">
-                  {dialogueBadge}
-                </div>
-              )}
-            </div>
-          )}
         </div>
 
         {/* Footer Dialogue Caption */}
